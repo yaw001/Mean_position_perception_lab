@@ -1,0 +1,82 @@
+coord_fcn <- function(coordinates,width_height){
+  x = c()
+  y = c()
+  if(sum(coordinates[[1]]>0)<2){
+    x = c(x,coordinates$x/width_height)
+    y = c(y,coordinates$y/width_height)
+  }else{
+    for(i in 1:length(coordinates)){
+      x = c(x,coordinates[[i]]$x/width_height)
+      y = c(y,coordinates[[i]]$y/width_height)
+    }
+  }
+  xy = data.frame(x=x,y=y)
+  return(xy)
+}
+
+coord_all_fcn <- function(coordinates,width_height){
+  x = c()
+  y = c()
+  for(i in 1:length(coordinates)){
+    x = c(x,coordinates[[i]]$x/width_height)
+    y = c(y,coordinates[[i]]$y/width_height)
+  }
+  xy = data.frame(x=x,y=y)
+  return(xy)
+}
+
+#Absolute distance error 
+abs_err_dist <- function(response,target_mean){
+  return(sqrt((response[1]-target_mean[1])^2 + (response[2]-target_mean[2])^2))
+}
+
+recenter <- function(coord, center){
+  coord$x = coord$x - center[1]
+  coord$y = coord$y - center[2]
+  return(coord)
+}
+
+compute_weight <- function(mean_group_1, mean_group_2, response){
+  if(mean_group_1 > mean_group_2){
+    weight_group_1 = (response - mean_group_2)/(mean_group_1-mean_group_2)
+    weight_group_2 = 1-weight_group_1
+  } else {
+    weight_group_1 = (mean_group_2 - response)/(mean_group_2-mean_group_1)
+    weight_group_2 = 1-weight_group_1
+  }
+  return(weight = list(weight_group_1 = weight_group_1,
+                       weight_group_2 = weight_group_2))
+}
+
+#convext hull 
+
+# X <- matrix(rnorm(2000), ncol = 2)
+# plot(X, cex = 0.5)
+# hpts <- chull(X)
+# hpts_line <- c(hpts, hpts[1])
+# lines(X[hpts_line, ])
+# mean = X[hpts, ] %>% colMeans()
+# points(x=mean[1],y=mean[2],col="red")
+# mean_2 = colMeans(X)
+# points(x=mean_2[1], y = mean_2[2],col = "blue")
+
+compute_ch <- function(coord){
+  return(coord[chull(coord),])
+}
+
+# box.coords <- matrix(c(1, 1,
+#                        4, 1,
+#                        1, 3,
+#                        4, 4), nrow = 4, ncol = 2, byrow = T)
+# plot(box.coords[,1], box.coords[,2], pch = 20)
+# 
+# box.hpts <- chull(x = box.coords[,1], y = box.coords[,2])
+# box.hpts <- c(box.hpts, box.hpts[1])
+# box.chull.coords <- box.coords[box.hpts,]
+# 
+# chull.poly <- Polygon(box.chull.coords, hole=F)
+# chull.area <- chull.poly@area
+
+compute_ch_area <- function(coord){
+  return(polygon(coord,hole=F)@area)
+}
