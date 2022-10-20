@@ -2,7 +2,7 @@ library(rjson)
 library(tidyverse)
 library(lsr)
 library(sp)
-setwd("/Users/young/Desktop/UCSD/Research/Mean_position_perception_lab/Cardinality_data")
+setwd("/Users/young/Desktop/UCSD/Research/Mean_position_perception_lab_data")
 
 #data transformation
 all.data_size = list()
@@ -113,16 +113,17 @@ tb.errors_size= trial_response_size %>%
          abs_error_to_all = abs_err_dist(response_recenter,c(0,0)),
          abs_error_to_ch = abs_err_dist(response_recenter,mean_ch),
          
-         group_1_weight= compute_weight(proj.x_group_1_mean, proj.x_group_2_mean, proj.x_response)$weight_group_1,
+         group_1_weight_raw = compute_weight(proj.x_group_1_mean, proj.x_group_2_mean, proj.x_response)$weight_group_1,
+         group_1_weight = ifelse(group_1_weight_raw<=0, 0.001, group_1_weight),
          true_group_1_weight = group_1_size/(group_1_size + group_2_size),
-         group_2_weight= compute_weight(proj.x_group_1_mean, proj.x_group_2_mean, proj.x_response)$weight_group_2,
+         group_2_weight= 1-group_1_weight,
          true_group_2_weight = group_2_size/(group_1_size + group_2_size)
   )
 
 # Data cleaning and sanity checks (exclusion)
 # Exclusion criterion
 # within_boundary_x 
-tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",]
+tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",] %>% print(n=100)
 # Attention check trials
 tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",][which(tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",]$mean_index==(-1)),] %>% 
   pull(subject) %>% 
@@ -141,7 +142,10 @@ all_coord_out = rbind(coord_out, coord_response_out)
 all_coord_out %>% ggplot(aes(x=x,y=y,color=type)) +geom_point() + facet_wrap(trial_num~.)
 
 # Subject exclusion
-# all.data_size[[37]]$client$survey_code
+# all.data_size[[1]]$client$sid
+
+# weird trials
+tb.errors_size[tb.errors_size$group_1_weight>=1,]
 
 #Exclude practice and attention check trials
 tb.errors_size_dat = tb.errors_size[-which(tb.errors_size$mean_index %in% (-(1:7))),]
@@ -170,9 +174,9 @@ tb.errors_size_dat %>%
   facet_wrap(group_1_size~subject)
 
 #Log weight ratio vs. log size_ratio
-tb.errors_size_dat=tb.errors_size_dat %>% rowwise() %>% mutate(log_weight_ratio = log(Group_1_weight/Group_2_weight),
+tb.errors_size_dat=tb.errors_size_dat %>% rowwise() %>% mutate(log_weight_ratio = log(group_1_weight/group_2_weight),
                                                        true_log_weight_ratio = log(size_ratio))
-
+tb.errors_size_dat[955,]$group_2_weight
 #Individual best-fitted slope
 tb.errors_size %>% 
   subset(as.numeric(subject)>10,as.numeric(subject)<=20) %>%
