@@ -123,10 +123,6 @@ tb.errors_size= trial_response_size %>%
 
 # Data cleaning and sanity checks (exclusion)
 # Exclusion criterion
-# within_boundary_x 
-# Likely due to button misclick
-tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",] %>% print(n=100)
-tb.errors_size = tb.errors_size[tb.errors_size$wihtin_boundary_x=="T",] 
 
 # Attention check trials
 tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",][which(tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",]$mean_index==(-1)),] %>% 
@@ -148,7 +144,10 @@ all_coord_out %>% ggplot(aes(x=x,y=y,color=type)) +geom_point() + facet_wrap(tri
 # Subject exclusion
 # all.data_size[[19]]$client$sid
 
-tb.errors_size = tb.errors_size[tb.errors_size$wihtin_boundary_x=="T",]
+# within_boundary_x 
+# Likely due to button misclick
+tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",] %>% print(n=100)
+tb.errors_size = tb.errors_size[tb.errors_size$wihtin_boundary_x=="T",] 
 
 #Exclude practice and attention check trials
 tb.errors_size_dat = tb.errors_size[-which(tb.errors_size$mean_index %in% (-(1:7))),]
@@ -178,14 +177,14 @@ tb.errors_size_dat %>% filter(group_1_size == 2) %>%
   group_by(subject,group_1_size,group_2_size) %>% 
   summarise(n = n(), mean_group_2_weight = mean(group_2_weight),median_group_2_weight = median(group_2_weight),true_group_2_weight=mean(true_group_2_weight)) %>% 
   ggplot(aes(x=group_2_size, y = mean_group_2_weight)) + 
-  geom_point(shape=16,size=3,color="red") + 
+  geom_point(shape=16,size=3) + 
   # geom_point(aes(x=group_2_size, y = median_group_2_weight),shape=16,color="blue",size=3)+
-  geom_point(aes(x=group_2_size, y = true_group_2_weight),shape=17,size=3,)+
+  geom_point(aes(x=group_2_size, y = true_group_2_weight),shape=17,size=3,color="red")+
   facet_wrap(group_1_size~subject)
 
 #Log weight ratio vs. log size_ratio
-tb.errors_size_dat=tb.errors_size_dat %>% rowwise() %>% mutate(log_weight_ratio = log(group_1_weight/group_2_weight,base=5),
-                                                               true_log_weight_ratio = log(size_ratio,base=5))
+tb.errors_size_dat=tb.errors_size_dat %>% rowwise() %>% mutate(log_weight_ratio = log(group_1_weight/group_2_weight),
+                                                               true_log_weight_ratio = log(size_ratio))
 # log weight ratio
 tb.errors_size_dat %>% filter(group_1_size == 4) %>% 
   group_by(subject,group_1_size,true_log_weight_ratio) %>% 
