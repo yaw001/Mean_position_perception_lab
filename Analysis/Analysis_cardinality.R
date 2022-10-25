@@ -2,7 +2,7 @@ library(rjson)
 library(tidyverse)
 library(lsr)
 library(sp)
-setwd("/Users/young/Desktop/UCSD/Research/Mean_position_perception_lab_data")
+setwd("/Users/young/Desktop/UCSD/Research/Mean_position_perception_lab_data/Cardinality_data")
 
 #data transformation
 all.data_size = list()
@@ -24,6 +24,7 @@ for(i in 1:num_subj) {
   for(j in 1:660) {
     trial_response_size = bind_rows(trial_response_size,
                                     tibble(subject = all.data_size[[i]]$subject,
+                                           sid = all.data_size[[i]]$client$sid,
                                            trial_number = all.data_size[[i]]$trials[[j]]$trialNumber,
                                            mean_index = all.data_size[[i]]$trials[[j]]$mean_index,
                                            group_1_size = all.data_size[[i]]$trials[[j]]$group_1_size,
@@ -114,7 +115,7 @@ tb.errors_size= trial_response_size %>%
          abs_error_to_ch = abs_err_dist(response_recenter,mean_ch),
          
          group_1_weight_raw = compute_weight(proj.x_group_1_mean, proj.x_group_2_mean, proj.x_response)$weight_group_1,
-         group_1_weight = ifelse(group_1_weight_raw<=0, 0.001, group_1_weight),
+         group_1_weight = ifelse(group_1_weight_raw<=0, 0.001, group_1_weight_raw),
          true_group_1_weight = group_1_size/(group_1_size + group_2_size),
          group_2_weight= 1-group_1_weight,
          true_group_2_weight = group_2_size/(group_1_size + group_2_size)
@@ -123,7 +124,10 @@ tb.errors_size= trial_response_size %>%
 # Data cleaning and sanity checks (exclusion)
 # Exclusion criterion
 # within_boundary_x 
+# Likely due to button misclick
 tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",] %>% print(n=100)
+tb.errors_size = tb.errors_size[tb.errors_size$wihtin_boundary_x=="T",] 
+
 # Attention check trials
 tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",][which(tb.errors_size[tb.errors_size$wihtin_boundary_x=="F",]$mean_index==(-1)),] %>% 
   pull(subject) %>% 
@@ -142,21 +146,23 @@ all_coord_out = rbind(coord_out, coord_response_out)
 all_coord_out %>% ggplot(aes(x=x,y=y,color=type)) +geom_point() + facet_wrap(trial_num~.)
 
 # Subject exclusion
-# all.data_size[[1]]$client$sid
+# all.data_size[[19]]$client$sid
 
-# weird trials
-tb.errors_size[tb.errors_size$group_1_weight>=1,]
+tb.errors_size = tb.errors_size[tb.errors_size$wihtin_boundary_x=="T",]
 
 #Exclude practice and attention check trials
 tb.errors_size_dat = tb.errors_size[-which(tb.errors_size$mean_index %in% (-(1:7))),]
+
+# weird trials
+tb.errors_size_dat[tb.errors_size_dat$group_1_weight>=1,]
 
 #Errors grouped by size_ratio (within-subjects)
 tb.errors_size_dat$abs_error_to_all %>% hist()
 
 # Group_1 weight vs.Group_2 cardinality
-# raw data
+# raw data (subject)
 tb.errors_size_dat$group_2_size = as.factor(tb.errors_size_dat$group_2_size)
-tb.errors_size_dat %>% 
+tb.errors_size_dat %>% filter(subject==8) %>% 
   ggplot(aes(x=group_2_size, y = group_2_weight)) + 
   geom_boxplot()+
   # geom_point(shape=16,size=3) + 
@@ -164,19 +170,71 @@ tb.errors_size_dat %>%
   geom_point(aes(x=group_2_size, y = true_group_2_weight), shape=17, size=3, color = "red")+
   facet_wrap(group_1_size~subject)
 
+all.data_size[[16]]$client$sid
+
 # average
-tb.errors_size_dat %>% 
+# raw data (subject)
+tb.errors_size_dat %>% filter(group_1_size == 2) %>% 
   group_by(subject,group_1_size,group_2_size) %>% 
-  summarise(n = n(), mean_group_2_weight = mean(group_2_weight),true_group_2_weight=mean(true_group_2_weight)) %>% 
+  summarise(n = n(), mean_group_2_weight = mean(group_2_weight),median_group_2_weight = median(group_2_weight),true_group_2_weight=mean(true_group_2_weight)) %>% 
   ggplot(aes(x=group_2_size, y = mean_group_2_weight)) + 
-  geom_point(shape=16,size=3) + 
-  geom_point(aes(x=group_2_size, y = true_group_2_weight),shape=17,size=3)+
+  geom_point(shape=16,size=3,color="red") + 
+  # geom_point(aes(x=group_2_size, y = median_group_2_weight),shape=16,color="blue",size=3)+
+  geom_point(aes(x=group_2_size, y = true_group_2_weight),shape=17,size=3,)+
   facet_wrap(group_1_size~subject)
 
 #Log weight ratio vs. log size_ratio
-tb.errors_size_dat=tb.errors_size_dat %>% rowwise() %>% mutate(log_weight_ratio = log(group_1_weight/group_2_weight),
-                                                       true_log_weight_ratio = log(size_ratio))
-tb.errors_size_dat[955,]$group_2_weight
+tb.errors_size_dat=tb.errors_size_dat %>% rowwise() %>% mutate(log_weight_ratio = log(group_1_weight/group_2_weight,base=5),
+                                                               true_log_weight_ratio = log(size_ratio,base=5))
+# log weight ratio
+tb.errors_size_dat %>% filter(group_1_size == 4) %>% 
+  group_by(subject,group_1_size,true_log_weight_ratio) %>% 
+  summarise(n = n(), mean_log_weight_ratio = mean(log_weight_ratio), true_log_weight_ratio=mean(true_log_weight_ratio)) %>% 
+  ggplot(aes(x=true_log_weight_ratio, y = mean_log_weight_ratio)) + 
+  geom_point(shape=16,size=3) + 
+  geom_point(aes(x=true_log_weight_ratio, y = true_log_weight_ratio),shape=17,size=3)+
+  facet_wrap(group_1_size~subject)
+
+# Mean performance
+tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio) %>% 
+  summarise(n = n(), group_2_weight = mean(group_2_weight),true_group_2_weight=mean(true_group_2_weight)) %>% 
+  group_by(group_1_size,group_2_size) %>% 
+  summarise(n=n(), mean_group_2_weight = mean(group_2_weight),se_group_2_weight = sd(group_2_weight)/sqrt(n),true_group_2_weight=mean(true_group_2_weight)) %>% 
+  ggplot(aes(x=group_2_size,y=mean_group_2_weight)) + 
+  geom_point(shape=16,size=3) + 
+  geom_line(aes(x=group_2_size,y=mean_group_2_weight,group = 2))+
+  geom_errorbar(aes(ymin=mean_group_2_weight-se_group_2_weight,ymax=mean_group_2_weight+se_group_2_weight),width=0.15,size=1.2)+
+  geom_point(aes(x=group_2_size, y = true_group_2_weight),shape=17,size=3,color="red")+
+  geom_line(aes(x=group_2_size, y = true_group_2_weight,group=2),color="red")+
+  facet_wrap(.~group_1_size)+
+  theme_bw()+
+  theme(axis.text = element_text(size= 16),
+        text = element_text(size= 16),
+        panel.grid = element_blank(),
+        legend.position = 'none')
+
+
+# log weight ratio
+tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio) %>% 
+  summarise(n = n(), log_weight_ratio = mean(log_weight_ratio),true_log_weight_ratio=mean(true_log_weight_ratio)) %>% 
+  group_by(group_1_size, size_ratio) %>% 
+  summarise(n=n(), 
+            mean_log_weight_ratio = mean(log_weight_ratio), 
+            se_log_weight_ratio = sd(log_weight_ratio)/sqrt(n),
+            true_log_weight_ratio = mean(true_log_weight_ratio)) %>% 
+  ggplot(aes(x=true_log_weight_ratio,y=mean_log_weight_ratio)) + 
+  geom_point(shape=16,size=3) + 
+  geom_line(aes(x=true_log_weight_ratio,y=mean_log_weight_ratio,group = 2))+
+  geom_errorbar(aes(ymin=mean_log_weight_ratio-se_log_weight_ratio,ymax=mean_log_weight_ratio+se_log_weight_ratio),width=0.15,size=1.2)+
+  geom_point(aes(x=true_log_weight_ratio, y = true_log_weight_ratio),shape=17,size=3,color="red")+
+  geom_line(aes(x=true_log_weight_ratio, y = true_log_weight_ratio,group=2),color="red")+
+  facet_wrap(.~group_1_size)+
+  theme_bw()+
+  theme(axis.text = element_text(size= 16),
+        text = element_text(size= 16),
+        panel.grid = element_blank(),
+        legend.position = 'none')
+            
 #Individual best-fitted slope
 tb.errors_size %>% 
   subset(as.numeric(subject)>10,as.numeric(subject)<=20) %>%
@@ -192,20 +250,20 @@ tb.errors_size %>%
 # tb.errors_size = tb.errors_size %>% subset(group_1_size==12)
 # tb.errors_size = tb.errors_size %>% subset(group_1_size>3)
 
-slope_dist = tb.errors_size %>% 
-  # filter(size_ratio_r>=1/8) %>% 
-  mutate(log_cardinality_ratio = log(size_ratio_r),
-         log_weight_ratio = log(Group_1_weight/Group_2_weight)) %>% group_by(subject) %>% 
+slope_dist = tb.errors_size_dat %>% 
+  filter(group_1_size == 1) %>%
+  mutate(log_cardinality_ratio = true_log_weight_ratio,
+         log_weight_ratio = log_weight_ratio) %>% group_by(subject) %>% 
   summarise(slope=summary(lm(log_weight_ratio~log_cardinality_ratio))$coefficients[2,1])
-
-slope_dist %>% print(n=100)
-mean(slope_dist$slope)
 
 slope_dist %>% ggplot(aes(subject,slope))+geom_point()+
   scale_y_continuous(breaks=seq(-0.1,2,by=0.2))+
   theme_bw()+
   theme(axis.text = element_text(size= 16),
         text = element_text(size= 16))
+
+slope_dist %>% print(n=100)
+mean(slope_dist$slope)
 
 slope_dist %>% ggplot(aes(slope))+
   geom_histogram(binwidth = 0.2,fill="white",color="black",position="identity",boundary=-0.2)+

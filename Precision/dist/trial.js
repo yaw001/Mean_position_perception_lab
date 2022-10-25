@@ -148,7 +148,7 @@ function trialDone() {
         group_1_size: trial_index[trialNumber][0],
         group_2_size: trial_index[trialNumber][1],
         group_1_sd: trial_index[trialNumber][2],
-        group_1_sd: trial_index[trialNumber][3],
+        group_2_sd: trial_index[trialNumber][3],
         mean_index: trial_index[trialNumber][4],
         group_1_coord: group_1_coord,
         group_2_coord: group_2_coord,
