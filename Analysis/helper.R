@@ -80,3 +80,30 @@ compute_ch <- function(coord){
 compute_ch_area <- function(coord){
   return(polygon(coord,hole=F)@area)
 }
+
+compute_inner_boundary <- function(proj_coord_1,proj_coord_2,mean_group_1,mean_group_2){
+  if(mean_group_1< mean_group_2){
+    proj_coord_lower = max(proj_coord_1)
+    proj_coord_upper = min(proj_coord_2)
+  } else{
+    proj_coord_lower = max(proj_coord_2)
+    proj_coord_upper = min(proj_coord_1)
+  }
+  return(inner_boundary = list(lower_inner_bound = proj_coord_lower,
+                               upper_inner_bound = proj_coord_upper))
+}
+
+compute_edge_weight <- function(mean_group_1, mean_group_2, proj_coord_1, proj_coord_2, response){
+  proj_coord_lower = compute_inner_boundary(proj_coord)$lower_inner_bound
+  proj_coord_upper = compute_inner_boundary(proj_coord)$upper_inner_bound
+  if(mean_group_1 > mean_group_2){
+    weight_group_1 = (response - proj_coord_lower)/(proj_coord_upper-proj_coord_lower)
+    weight_group_2 = 1-weight_group_1
+  } else {
+    weight_group_1 = (proj_coord_upper - response)/(proj_coord_upper-proj_coord_lower)
+    weight_group_2 = 1-weight_group_1
+  }
+  return(weight = list(weight_group_1 = weight_group_1,
+                       weight_group_2 = weight_group_2))
+}
+
