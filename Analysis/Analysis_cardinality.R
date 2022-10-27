@@ -112,6 +112,7 @@ tb.errors_size= trial_response_size %>%
                                   "T","F"),
          # Absolute error
          abs_error_to_all = abs_err_dist(response_recenter,c(0,0)),
+         abs_error_to_all_proj_x = abs_err_dist(proj.x_response,c(0,0)),
          abs_error_to_ch = abs_err_dist(response_recenter,mean_ch),
          
          
@@ -160,13 +161,18 @@ tb.errors_size_dat = tb.errors_size[-which(tb.errors_size$mean_index %in% (-(1:7
 # weird trials
 tb.errors_size_dat[tb.errors_size_dat$group_1_weight>=1,]
 
-#Errors grouped by size_ratio (within-subjects)
-tb.errors_size_dat$abs_error_to_all %>% hist()
+#Mean absolute error for individual subject
+mean_abs_error_size = tb.errors_size_dat %>% filter(size_ratio == 1) %>% group_by(subject) %>% 
+  summarise(mean_abs_error = mean(abs_error_to_all)) %>% 
+  mutate(z_score = (mean_abs_error - mean(mean_abs_error))/sd(mean_abs_error)) 
+
+mean_abs_error_size %>%  pull(mean_abs_error) %>% hist()
+mean_abs_error_size %>% filter(z_score>2)
 
 # Group_1 weight vs.Group_2 cardinality
 # raw data (subject)
 tb.errors_size_dat$group_2_size = as.factor(tb.errors_size_dat$group_2_size)
-tb.errors_size_dat %>% filter(subject==2) %>% 
+tb.errors_size_dat %>% filter(subject==17) %>% 
   ggplot(aes(x=group_2_size, y = group_2_weight)) + 
   geom_boxplot()+
   # geom_point(shape=16,size=3) + 
@@ -174,17 +180,18 @@ tb.errors_size_dat %>% filter(subject==2) %>%
   geom_point(aes(x=group_2_size, y = true_group_2_weight), shape=17, size=3, color = "red")+
   facet_wrap(group_1_size~subject)
 
-all.data_size[[16]]$client$sid
+all.data_size[[17]]$client$sid
 
 # average
 # raw data (subject)
 tb.errors_size_dat %>% filter(group_1_size == 2) %>% 
   group_by(subject,group_1_size,group_2_size) %>% 
-  summarise(n = n(), mean_group_2_weight = mean(group_2_weight),median_group_2_weight = median(group_2_weight),true_group_2_weight=mean(true_group_2_weight)) %>% 
-  ggplot(aes(x=group_2_size, y = mean_group_2_weight)) + 
+  summarise(n = n(), mean_group_1_weight = mean(group_1_weight),median_group_1_weight = median(group_1_weight),
+            true_group_1_weight=mean(true_group_1_weight)) %>% 
+  ggplot(aes(x=group_2_size, y = mean_group_1_weight)) + 
   geom_point(shape=16,size=3) + 
   # geom_point(aes(x=group_2_size, y = median_group_2_weight),shape=16,color="blue",size=3)+
-  geom_point(aes(x=group_2_size, y = true_group_2_weight),shape=17,size=3,color="red")+
+  geom_point(aes(x=group_2_size, y = true_group_1_weight),shape=17,size=3,color="red")+
   facet_wrap(group_1_size~subject)
 
 #Log weight ratio vs. log size_ratio
@@ -200,17 +207,41 @@ tb.errors_size_dat %>% filter(group_1_size == 4) %>%
   facet_wrap(group_1_size~subject)
 
 # Mean performance
+# group_1_weight
+tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio) %>% 
+  summarise(n = n(), 
+            group_1_weight = mean(group_1_weight),
+            true_group_1_weight=mean(true_group_1_weight)) %>% 
+  group_by(group_1_size,group_2_size) %>% 
+  summarise(n=n(), 
+            mean_group_1_weight = mean(group_1_weight),
+            se_group_1_weight = sd(group_1_weight)/sqrt(n),
+            true_group_1_weight=mean(true_group_1_weight)) %>% 
+  ggplot(aes(x=group_2_size,y=mean_group_1_weight)) + 
+  geom_point(shape=16,size=3) + 
+  geom_line(aes(x=group_2_size,y=mean_group_1_weight,group = 2))+
+  geom_errorbar(aes(ymin=mean_group_1_weight-se_group_1_weight,ymax=mean_group_1_weight+se_group_1_weight),width=0.15,size=1.2)+
+  geom_point(aes(x=group_2_size, y = true_group_1_weight),shape=17,size=3,color="red")+
+  geom_line(aes(x=group_2_size, y = true_group_1_weight,group=2),color="red")+
+  # geom_point(aes(x=group_2_size, y = mean_group_2_edge),shape=17,size=3,color="blue")+
+  # geom_line(aes(x=group_2_size, y = mean_group_2_edge,group=2),color="blue")+
+  facet_wrap(.~group_1_size)+
+  theme_bw()+
+  theme(axis.text = element_text(size= 16),
+        text = element_text(size= 16),
+        panel.grid = element_blank(),
+        legend.position = 'none')
+
+#group_2_weight
 tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio) %>% 
   summarise(n = n(), 
             group_2_weight = mean(group_2_weight),
-            true_group_2_weight=mean(true_group_2_weight),
-            group_2_weight_edge=mean(group_2_weight_edge)) %>% 
+            true_group_2_weight=mean(true_group_2_weight)) %>% 
   group_by(group_1_size,group_2_size) %>% 
   summarise(n=n(), 
             mean_group_2_weight = mean(group_2_weight),
             se_group_2_weight = sd(group_2_weight)/sqrt(n),
-            true_group_2_weight=mean(true_group_2_weight),
-            mean_group_2_edge=mean(group_2_weight_edge)) %>% 
+            true_group_2_weight=mean(true_group_2_weight)) %>% 
   ggplot(aes(x=group_2_size,y=mean_group_2_weight)) + 
   geom_point(shape=16,size=3) + 
   geom_line(aes(x=group_2_size,y=mean_group_2_weight,group = 2))+
@@ -225,7 +256,6 @@ tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio)
         text = element_text(size= 16),
         panel.grid = element_blank(),
         legend.position = 'none')
-
 
 # log weight ratio
 tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio) %>% 
@@ -266,11 +296,20 @@ tb.errors_size_dat = tb.errors_size_dat %>% mutate(
 )
 
 edge_proportion = tb.errors_size_dat %>% filter(size_ratio !=1) %>% 
-  group_by(group_1_size,group_2_size) %>% 
+  group_by(group_1_size,size_ratio) %>% 
   summarise(total = n(),
             inconsistent=sum(consistent_side==F),
             outside = sum(inner_group == T & inner_group_response == F),
             proportion_inconsitent = inconsistent/total,
-            proportion_outside = outside/inconsistent)
+            proportion_outside = outside/inconsistent) %>% 
+  mutate(category = paste0("(",group_1_size,",",size_ratio,")"))
 
-edge_proportion$proportion
+edge_proportion %>%  ggplot(aes(x=as.factor(size_ratio), y=proportion_inconsitent, fill = proportion_outside)) +
+  geom_col()+
+  scale_fill_gradient(low = "yellow", high = "red", na.value = NA)+
+  scale_x_discrete(limits = rev)+
+  facet_wrap(.~group_1_size)
+
+
+
+

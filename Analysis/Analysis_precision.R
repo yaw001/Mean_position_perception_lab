@@ -115,6 +115,7 @@ tb.errors_precision= trial_response_precision %>%
                                   "T","F"),
          # Absolute error
          abs_error_to_all = abs_err_dist(response_recenter,c(0,0)),
+         abs_error_to_all_proj_x = abs_err_dist(proj.x_response,c(0,0)),
          abs_error_to_ch = abs_err_dist(response_recenter,mean_ch),
          
          group_1_weight_raw = compute_weight(proj.x_group_1_mean, proj.x_group_2_mean, proj.x_response)$weight_group_1,
@@ -155,8 +156,13 @@ tb.errors_precision_dat = tb.errors_precision[-which(tb.errors_precision$mean_in
 # weird trials
 tb.errors_precision_dat[tb.errors_precision_dat$group_1_weight>=1,]
 
-#Errors grouped by size_ratio (within-subjects)
-tb.errors_precision_dat$abs_error_to_all %>% hist()
+#Mean absolute error for individual subject
+mean_abs_error_precision = tb.errors_precision_dat %>% filter(size_ratio == 1,precision_ratio==1) %>% group_by(subject) %>% 
+  summarise(mean_abs_error = mean(abs_error_to_all)) %>% 
+  mutate(z_score = (mean_abs_error - mean(mean_abs_error))/sd(mean_abs_error)) 
+
+mean_abs_error_precision %>%  pull(mean_abs_error) %>% hist()
+mean_abs_error_precision %>%filter(z_score>2)
 
 # Mean estimate analysis
 
@@ -170,12 +176,12 @@ tb.errors_precision_dat$group_2_size = as.factor(tb.errors_precision_dat$group_2
 tb.errors_precision_dat$size_ratio = as.factor(tb.errors_precision_dat$size_ratio)
 tb.errors_precision_dat$precision_ratio = as.factor(tb.errors_precision_dat$precision_ratio)
 
-tb.errors_precision_dat  %>% filter(size_ratio==1) %>% 
+tb.errors_precision_dat  %>% filter(size_ratio==0.5, subject==3) %>% 
   ggplot(aes(x=precision_ratio, y = group_1_weight)) + 
   # geom_boxplot()+
   geom_point(shape=16,size=3)+
   geom_jitter(position=position_jitter(0.1),shape=16,size=2.5)+
-  geom_point(aes(x=precision_ratio, y = true_group_1_weight), shape=17, size=3, color = "red")+
+  geom_point(aes(x=precision_ratio, y = true_group_1_weight), shape=17, size=3, color = "red") +
   facet_wrap(.~subject)
 
 # Average
@@ -201,3 +207,7 @@ tb.errors_precision_dat %>% group_by(subject, group_1_size, size_ratio, precisio
   theme(axis.text = element_text(size= 16),
         text = element_text(size= 16),
         panel.grid = element_blank())
+
+
+
+
