@@ -165,13 +165,39 @@ tb.errors_precision_dat$abs_error_to_all %>% hist()
 
 # Group_1 weight vs.Group_2 cardinality
 # raw data (subject)
+tb.errors_precision_dat$group_1_size = as.factor(tb.errors_precision_dat$group_1_size)
 tb.errors_precision_dat$group_2_size = as.factor(tb.errors_precision_dat$group_2_size)
-tb.errors_precision_dat$size_ratio = as.factor(tb.errors_precision_dat$group_2_sd)
+tb.errors_precision_dat$size_ratio = as.factor(tb.errors_precision_dat$size_ratio)
+tb.errors_precision_dat$precision_ratio = as.factor(tb.errors_precision_dat$precision_ratio)
 
-tb.errors_precision_dat %>% filter(size_ratio==1) %>% 
+tb.errors_precision_dat  %>% filter(size_ratio==1) %>% 
   ggplot(aes(x=precision_ratio, y = group_1_weight)) + 
-  geom_boxplot()+
-  # geom_point(shape=16,size=3) + 
+  # geom_boxplot()+
+  geom_point(shape=16,size=3)+
   geom_jitter(position=position_jitter(0.1),shape=16,size=2.5)+
   geom_point(aes(x=precision_ratio, y = true_group_1_weight), shape=17, size=3, color = "red")+
-  facet_wrap(size_ratio~subject)
+  facet_wrap(.~subject)
+
+# Average
+tb.errors_precision_dat %>% group_by(subject, group_1_size, size_ratio, precision_ratio) %>% 
+  summarise(n = n(), 
+            group_1_weight = mean(group_1_weight),
+            true_group_1_weight=mean(true_group_1_weight)) %>% 
+  group_by(precision_ratio,size_ratio,group_1_size) %>% 
+  summarise(n=n(), 
+            mean_group_1_weight = mean(group_1_weight),
+            se_group_1_weight = sd(group_1_weight)/sqrt(n),
+            true_group_1_weight=mean(true_group_1_weight)) %>% 
+  ggplot(aes(x=precision_ratio,y=mean_group_1_weight,color=group_1_size,group=group_1_size)) + 
+  geom_point(shape=16,size=3) + 
+  geom_line(aes(x=precision_ratio,y=mean_group_1_weight))+
+  geom_errorbar(aes(ymin=mean_group_1_weight-se_group_1_weight,ymax=mean_group_1_weight+se_group_1_weight),width=0.15,size=1.2)+
+  geom_point(aes(x=precision_ratio, y = true_group_1_weight),shape=17,size=3,color="red")+
+  geom_line(aes(x=precision_ratio, y = true_group_1_weight,group=2),color="red")+
+  # geom_point(aes(x=group_2_size, y = mean_group_2_edge),shape=17,size=3,color="blue")+
+  # geom_line(aes(x=group_2_size, y = mean_group_2_edge,group=2),color="blue")+
+  facet_wrap(.~size_ratio)+
+  theme_bw()+
+  theme(axis.text = element_text(size= 16),
+        text = element_text(size= 16),
+        panel.grid = element_blank())
