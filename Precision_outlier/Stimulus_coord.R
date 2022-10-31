@@ -1,0 +1,214 @@
+library(tidyverse)
+library(truncnorm)
+# #1: center
+# 
+#2:
+# coord_2 = data.frame(x=c(-1,1),
+#                      y=c(-1,1))
+# 
+# coord_2 = data.frame(x=c(-1,1),
+#                      y=c(1,-1))
+
+# var(coord_2)
+# plot(coord_2)
+
+# #4:
+# coord_4 = data.frame(x=c(-sqrt(1.5),-sqrt(1.5),sqrt(1.5),sqrt(1.5)),
+#                      y=c(-sqrt(1.5),sqrt(1.5) ,sqrt(1.5) ,-sqrt(1.5)))
+# var(coord_4)
+# plot(coord_4)
+# 
+# 
+# 
+#8
+# a_8 = 0.7
+# b_8 = sqrt(7/2 - a_8^2)
+# b_8
+# 
+# coord_8 = data.frame(x=c(rep(-b_8,2),rep(-a_8,2),rep(a_8,2),rep(b_8,2)),
+#                      y=c(b_8,-b_8,-a_8,a_8,-a_8,a_8,-b_8,b_8))
+# 
+# var(coord_8)
+# plot(coord_8)
+
+# coord_8 = data.frame(x=c(rep(-sqrt(7/3),3),rep(0,2),rep(sqrt(7/3),3)),
+#                      y=c(-sqrt(7/3),0,sqrt(7/3),-sqrt(7/3),sqrt(7/3),-sqrt(7/3),0,sqrt(7/3)))
+# 
+# var(coord_8)
+# plot(coord_8)
+
+# 16
+# a_16 = 0.6
+# b_16 = sqrt(15/4 - a_16^2)
+# b_16
+# 
+# coord_16 = data.frame(x=c(rep(-b_16,4),rep(-a_16,4),rep(a_16,4),rep(b_16,4)),
+#                       y=c(rep(c(-b_16,-a_16,a_16,b_16),4)))
+# 
+# var(coord_16)
+# plot(coord_16)
+
+#32
+# a_32 = 1.75
+# b_32 = sqrt(13/2 - a_32^2)
+# b_32
+# 
+# coord_32 = data.frame(x=c(rep(-b_32,4),rep(-a_32,4),rep(-1,4),rep(-0.25,4),rep(0.25,4),rep(1,4),rep(a_32,4),rep(b_32,4)),
+#                       y=c(-b_32,-0.25,0.25,b_32,
+#                           -a_32,-1,1,a_32,
+#                           -a_32,-1,1,a_32,
+#                           -b_32,-0.25,0.25,b_32,
+#                           -b_32,-0.25,0.25,b_32,
+#                           -a_32,-1,1,a_32,
+#                           -a_32,-1,1,a_32,
+#                           -b_32,-0.25,0.25,b_32))
+# 
+# var(coord_32)
+# plot(coord_32)
+
+# a_32 = 1.25
+# b_32 = sqrt((118-16*a_32)/24)
+# 
+# coord_32 = data.frame(x=c(rep(-b_32,6),rep(-a_32,4),rep(-0.5,6),rep(0.5,6),rep(a_32,4),rep(b_32,6)),
+#                       y=c(-b_32,-a_32,-0.5,0.5,a_32,b_32,
+#                           -b_32,-0.5,0.5,b_32,
+#                           -b_32,-a_32,-0.5,0.5,a_32,b_32,
+#                           -b_32,-a_32,-0.5,0.5,a_32,b_32,
+#                           -b_32,-0.5,0.5,b_32,
+#                           -b_32,-a_32,-0.5,0.5,a_32,b_32))
+# 
+# var(coord_32)
+# plot(coord_32)
+
+# Sample_generator
+# Recenter function
+recenter <- function(df){
+  means = colMeans(df)
+  df$x = df$x - means[1]
+  df$y = df$y - means[2]
+  return(df)
+}
+
+range_min = -0.4
+range_max = 0.4
+noise_sd = 0.2
+# 2
+sample_2 <- function(n_1,n_2){
+  sample_list = list()
+  coord_2_1 = data.frame(x=c(-1,1),
+                       y=c(-1,1))
+
+  coord_2_2 = data.frame(x=c(-1,1),
+                       y=c(1,-1))
+  sample_1 = coord_2_1
+  sample_2 = coord_2_2
+  for(i in 1:n_1){
+    sample_1 = sample_1 %>% mutate(x=x+rtruncnorm(2,range_min,range_max,0,noise_sd),
+                               y=y+rtruncnorm(2,range_min,range_max,0,noise_sd))
+    sample_1 = recenter(sample_1)
+    sample_list = c(sample_list,list(sample_1))
+    sample_1 = coord_2_1
+  }
+  for(i in 1:n_1){
+    sample_2 = sample_2 %>% mutate(x=x+rtruncnorm(2,range_min,range_max,0,noise_sd),
+                                   y=y+rtruncnorm(2,range_min,range_max,0,noise_sd))
+    sample_2 = recenter(sample_2)
+    sample_list = c(sample_list,list(sample_2))
+    sample_2 = coord_2_2
+  }
+  return(sample_list)
+}
+
+# 4
+sample_4 <- function(n){
+  sample_list = list()
+  coord_4 = data.frame(x=c(-sqrt(1.5),-sqrt(1.5),sqrt(1.5),sqrt(1.5)),
+                       y=c(-sqrt(1.5),sqrt(1.5) ,sqrt(1.5) ,-sqrt(1.5)))
+  sample = coord_4
+  for(i in 1:n){
+    sample = sample %>% mutate(x=x+rtruncnorm(4,range_min,range_max,0,noise_sd),
+                               y=y+rtruncnorm(4,range_min,range_max,0,noise_sd))
+    sample = recenter(sample)
+    sample_list = c(sample_list,list(sample))
+    sample = coord_4
+  }
+  return(sample_list)
+}
+sample_4(50)
+
+#8
+sample_8 <- function(n){
+  sample_list = list()
+  coord_8 = data.frame(x=c(rep(-sqrt(7/3),3),rep(0,2),rep(sqrt(7/3),3)),
+                       y=c(-sqrt(7/3),0,sqrt(7/3),-sqrt(7/3),sqrt(7/3),-sqrt(7/3),0,sqrt(7/3)))
+  sample = coord_8
+  for(i in 1:n){
+    sample = sample %>% mutate(x=x+rtruncnorm(8,range_min,range_max,0,noise_sd),
+                               y=y+rtruncnorm(8,range_min,range_max,0,noise_sd))
+    sample = recenter(sample)
+    sample_list = c(sample_list,list(sample))
+    sample = coord_8
+  }
+  return(sample_list)
+}
+
+#16
+sample_16 <- function(n){
+  sample_list = list()
+  a_16 = 0.6
+  b_16 = sqrt(15/4 - a_16^2)
+  coord_16 = data.frame(x=c(rep(-b_16,4),rep(-a_16,4),rep(a_16,4),rep(b_16,4)),
+                        y=c(rep(c(-b_16,-a_16,a_16,b_16),4)))
+  sample = coord_16
+  for(i in 1:n){
+    sample = sample %>% mutate(x=x+rtruncnorm(16,range_min,range_max,0,noise_sd),
+                               y=y+rtruncnorm(16,range_min,range_max,0,noise_sd))
+    sample = recenter(sample)
+    sample_list = c(sample_list,list(sample))
+    sample = coord_16
+    
+  }
+  return(sample_list)
+}
+
+#32
+sample_32 <- function(n){
+  sample_list = list()
+  a_32 = 1.25
+  b_32 = sqrt((118-16*a_32)/24)
+  
+  coord_32 = data.frame(x=c(rep(-b_32,6),rep(-a_32,4),rep(-0.5,6),rep(0.5,6),rep(a_32,4),rep(b_32,6)),
+                        y=c(-b_32,-a_32,-0.5,0.5,a_32,b_32,
+                            -b_32,-0.5,0.5,b_32,
+                            -b_32,-a_32,-0.5,0.5,a_32,b_32,
+                            -b_32,-a_32,-0.5,0.5,a_32,b_32,
+                            -b_32,-0.5,0.5,b_32,
+                            -b_32,-a_32,-0.5,0.5,a_32,b_32))
+  sample = coord_32
+  for(i in 1:n){
+    sample = sample %>% mutate(x=x+rtruncnorm(32,range_min,range_max,0,noise_sd),
+                               y=y+rtruncnorm(32,range_min,range_max,0,noise_sd))
+    sample = recenter(sample)
+    sample_list = c(sample_list,list(sample))
+    sample = coord_32
+  }
+  return(sample_list)
+}
+
+#Generate all
+sample_list_1 = list(sample_2(50,50),sample_4(100),sample_8(100),sample_16(100),sample_32(100))
+sample_list_2 = list(sample_2(50,50),sample_4(100),sample_8(100),sample_16(100),sample_32(100))
+all_sample = tibble(group_sample_1 = sample_list_1,
+                    group_sample_2 = sample_list_2)
+
+
+#Plot (Test)
+# sample_list_1[[1]][[60]] %>% ggplot(aes(x,y))+geom_point()+ coord_cartesian(xlim = c(-3,3),ylim=c(-3,3))
+
+library(dplyr)
+library(jsonlite)
+
+all_sample = toJSON(all_sample)
+
+setwd("/Users/young/Desktop/UCSD/Research/Mean_position_perception_lab/Cardinality/dist")
+write_json(all_sample,"all_sample.js")

@@ -202,26 +202,26 @@ function get_positions(trial_index) {
         console.log(all_coord);
     } else {
         if (trial_index[0] == 1 && trial_index[1] == 1) {
-            group_1_coord.x = trial_index[5] + group_mean_to_center * Math.cos(degToRad(180 + trial_index[3] * 30));
+            group_1_coord.x = trial_index[5] + group_mean_to_center * Math.cos(degToRad(180 + trial_index[4] * 30));
             group_1_coord.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(180 + trial_index[3] * 30));
 
-            group_2_coord.x = trial_index[5] + group_mean_to_center * Math.cos(degToRad(trial_index[3] * 30));
-            group_2_coord.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(trial_index[3] * 30));
+            group_2_coord.x = trial_index[5] + group_mean_to_center * Math.cos(degToRad(trial_index[4] * 30));
+            group_2_coord.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(trial_index[4] * 30));
             all_coord = [group_1_coord].concat([group_2_coord]);
         } else if (trial_index[0] != 1 && trial_index[1] == 1) {
-            group_1_coord.map(x => x.x = (trial_index[5] + group_mean_to_center * Math.cos(degToRad(180 + trial_index[3] * 30))) + x.x * trial_index[2] * (group_range_unit));
-            group_1_coord.map(x => x.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(180 + trial_index[3] * 30)) + x.y * trial_index[2] * (group_range_unit));
+            group_1_coord.map(x => x.x = (trial_index[5] + group_mean_to_center * Math.cos(degToRad(180 + trial_index[4] * 30))) + x.x * trial_index[2] * (group_range_unit));
+            group_1_coord.map(x => x.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(180 + trial_index[4] * 30)) + x.y * trial_index[2] * (group_range_unit));
 
-            group_2_coord.x = trial_index[5] + group_mean_to_center * Math.cos(degToRad(trial_index[3] * 30));
-            group_2_coord.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(trial_index[3] * 30));
+            group_2_coord.x = trial_index[5] + group_mean_to_center * Math.cos(degToRad(trial_index[4] * 30));
+            group_2_coord.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(trial_index[4] * 30));
 
             all_coord = group_1_coord.concat([group_2_coord]);
         } else if (trial_index[0] == 1 && trial_index[1] != 1) {
-            group_1_coord.x = trial_index[5] + group_mean_to_center * Math.cos(degToRad(180 + trial_index[3] * 30));
-            group_1_coord.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(180 + trial_index[3] * 30));
+            group_1_coord.x = trial_index[5] + group_mean_to_center * Math.cos(degToRad(180 + trial_index[4] * 30));
+            group_1_coord.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(180 + trial_index[4] * 30));
 
-            group_2_coord.map(x => x.x = (trial_index[5] + group_mean_to_center * Math.cos(degToRad(trial_index[3] * 30))) + x.x * trial_index[2] * (group_range_unit));
-            group_2_coord.map(x => x.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(trial_index[3] * 30)) + x.y * trial_index[2] * (group_range_unit));
+            group_2_coord.map(x => x.x = (trial_index[5] + group_mean_to_center * Math.cos(degToRad(trial_index[4] * 30))) + x.x * trial_index[2] * (group_range_unit));
+            group_2_coord.map(x => x.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(trial_index[4] * 30)) + x.y * trial_index[2] * (group_range_unit));
 
             all_coord = [group_1_coord].concat(group_2_coord);
         } else {
