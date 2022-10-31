@@ -2,6 +2,7 @@ library(rjson)
 library(tidyverse)
 library(lsr)
 library(sp)
+library(splancs)
 setwd("/Users/young/Desktop/UCSD/Research/Mean_position_perception_lab_data/Cardinality_data")
 
 #data transformation
@@ -264,7 +265,9 @@ tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio)
   summarise(n = n(), 
             group_1_weight = mean(group_2_weight),
             true_group_1_weight=mean(true_group_2_weight)) %>%
-  ggplot(aes(x=group_1_weight))+geom_histogram() + facet_wrap(group_1_size~size_ratio)
+  ggplot(aes(x=group_1_weight))+geom_histogram() + 
+  geom_vline(aes(xintercept=true_group_1_weight,color="red"))+
+  facet_wrap(group_1_size~size_ratio)
 
 
 # log weight ratio
@@ -288,11 +291,18 @@ tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio)
         panel.grid = element_blank(),
         legend.position = 'none')
 
-
 # Models
-# Cardinality-Weighting model: Global mean
+# Cardinality-Weighting model: Global mean + noise
+
+
 
 # Edge effect: Weighting of the two groups is not based on the group means but rather the boundary
+# Given the boundary, the 2-D Gaussian distribution is truncated => naturally shifted the mean as opposed to unbounded.
+# Two boundaries: Group edge boundary (potential) vs. group mean boundaries (global mean has to located between group means)
+# Behavioral experiment: Mean estimation task without boundary vs. mean estimation task with boundary
+# In unbounded condition, estimate random dot cluster
+# In bounded condition, a visual boundary line indicating whether the mean is on the left or right of the boundary.
+
 tb.errors_size_dat = tb.errors_size_dat %>% mutate(
   x_proj_inner_lower = compute_inner_boundary(proj.x_group_1,proj.x_group_2,proj.x_group_1_mean,proj.x_group_2_mean)$lower_inner_bound,
   x_proj_inner_upper = compute_inner_boundary(proj.x_group_1,proj.x_group_2,proj.x_group_1_mean,proj.x_group_2_mean)$upper_inner_bound,
@@ -321,6 +331,21 @@ edge_proportion %>%  ggplot(aes(x=as.factor(size_ratio), y=proportion_inconsiten
   scale_x_discrete(limits = rev)+
   facet_wrap(.~group_1_size)
 
+# Noisy estimation bounded by group means
 
+
+
+
+
+# Trial-by-trial dependency
+# Identify each trial and its antecedent (one-back)
+# Identify the true mean 
+
+# convex hull area (cardinality >= 4)
+tb.errors_size_dat=tb.errors_size_dat %>% mutate(convex_hull_coord_group_1 = list(compute_ch(group_1_coord_recenter)),
+                              convex_hull_coord_group_2 = list(compute_ch(group_2_coord_recenter)))
+
+tb.errors_size_dat = tb.errors_size_dat %>% mutate(area_hull_group_1 = areapl(as.matrix(convex_hull_coord_group_1)),
+                                                   area_hull_group_2 = areapl(as.matrix(convex_hull_coord_group_2))) 
 
 
