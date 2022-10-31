@@ -160,6 +160,7 @@ tb.errors_size_dat = tb.errors_size[-which(tb.errors_size$mean_index %in% (-(1:7
 
 # weird trials
 tb.errors_size_dat[tb.errors_size_dat$group_1_weight>=1,]
+tb.errors_size_dat = tb.errors_size_dat[(tb.errors_size_dat$group_1_weight<=1),]
 
 #Mean absolute error for individual subject
 mean_abs_error_size = tb.errors_size_dat %>% filter(size_ratio == 1) %>% group_by(subject) %>% 
@@ -168,23 +169,24 @@ mean_abs_error_size = tb.errors_size_dat %>% filter(size_ratio == 1) %>% group_b
 
 mean_abs_error_size %>%  pull(mean_abs_error) %>% hist()
 mean_abs_error_size %>% filter(z_score>2)
+tb.errors_size_dat %>% filter(subject==8)
 
 # Group_1 weight vs.Group_2 cardinality
 # raw data (subject)
 tb.errors_size_dat$group_2_size = as.factor(tb.errors_size_dat$group_2_size)
-tb.errors_size_dat %>% filter(subject==17) %>% 
-  ggplot(aes(x=group_2_size, y = group_2_weight)) + 
+tb.errors_size_dat %>% filter(subject==8) %>% 
+  ggplot(aes(x=group_2_size, y = group_1_weight)) + 
   geom_boxplot()+
   # geom_point(shape=16,size=3) + 
   geom_jitter(position=position_jitter(0.1),shape=16,size=2.5)+
-  geom_point(aes(x=group_2_size, y = true_group_2_weight), shape=17, size=3, color = "red")+
+  geom_point(aes(x=group_2_size, y = true_group_1_weight), shape=17, size=3, color = "red")+
   facet_wrap(group_1_size~subject)
 
-all.data_size[[17]]$client$sid
+all.data_size[[8]]$client$sid
 
 # average
 # raw data (subject)
-tb.errors_size_dat %>% filter(group_1_size == 2) %>% 
+tb.errors_size_dat %>% filter(group_1_size == 4) %>% 
   group_by(subject,group_1_size,group_2_size) %>% 
   summarise(n = n(), mean_group_1_weight = mean(group_1_weight),median_group_1_weight = median(group_1_weight),
             true_group_1_weight=mean(true_group_1_weight)) %>% 
@@ -244,7 +246,7 @@ tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio)
             true_group_2_weight=mean(true_group_2_weight)) %>% 
   ggplot(aes(x=group_2_size,y=mean_group_2_weight)) + 
   geom_point(shape=16,size=3) + 
-  geom_line(aes(x=group_2_size,y=mean_group_2_weight,group = 2))+
+  geom_line(aes(x=group_2_size,y=mean_group_2_weight,group = 2)) +
   geom_errorbar(aes(ymin=mean_group_2_weight-se_group_2_weight,ymax=mean_group_2_weight+se_group_2_weight),width=0.15,size=1.2)+
   geom_point(aes(x=group_2_size, y = true_group_2_weight),shape=17,size=3,color="red")+
   geom_line(aes(x=group_2_size, y = true_group_2_weight,group=2),color="red")+
@@ -256,6 +258,14 @@ tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio)
         text = element_text(size= 16),
         panel.grid = element_blank(),
         legend.position = 'none')
+
+# Distributions
+tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio) %>% 
+  summarise(n = n(), 
+            group_1_weight = mean(group_2_weight),
+            true_group_1_weight=mean(true_group_2_weight)) %>%
+  ggplot(aes(x=group_1_weight))+geom_histogram() + facet_wrap(group_1_size~size_ratio)
+
 
 # log weight ratio
 tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio) %>% 
@@ -277,7 +287,8 @@ tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio)
         text = element_text(size= 16),
         panel.grid = element_blank(),
         legend.position = 'none')
-            
+
+
 # Models
 # Cardinality-Weighting model: Global mean
 

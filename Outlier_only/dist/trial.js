@@ -183,7 +183,7 @@ function experimentDone() {
 function trial() {
     stimuli(trialNumber);
     setTimeout(() => { draw(group_1_coord, group_2_coord, radius, color, trialNumber); }, 500);
-    // setTimeout(() => { clear(); }, 1000);
+    setTimeout(() => { clear(); }, 1000);
     setTimeout(() => { document.getElementById('canvas').style.pointerEvents = 'auto'; }, 1005);
     setTimeout(() => { document.querySelector("canvas").addEventListener("click", getClickPosition); }, 1010);
 }
