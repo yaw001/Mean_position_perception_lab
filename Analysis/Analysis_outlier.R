@@ -2,56 +2,61 @@ library(rjson)
 library(tidyverse)
 library(lsr)
 library(sp)
-setwd("/Users/young/Desktop/UCSD/Research/Mean_position_perception_lab_data/Precision_data")
-setwd("/Users/young/Desktop/UCSD/Research/Mean_position_perception_lab_data/Precision_outlier_data")
+setwd("/Users/young/Desktop/UCSD/Research/Mean_position_perception_lab_data/Outlier_data")
 
 #data transformation
-all.data_precision = list()
+all.data_outlier = list()
 subject = 1
 for(file.name in list.files(pattern = '*.json')) {
   json_file = fromJSON(file = file.name)
   json_file[['subject']] = subject
-  all.data_precision[[subject]] = json_file
+  all.data_outlier[[subject]] = json_file
   subject = subject + 1
 }
 
 setwd("/Users/young/Desktop/UCSD/Research/Mean_position_perception_lab/Analysis")
 source("helper.R")
 
-trial_response_precision = tibble()
-num_subj = length(all.data_precision)
+trial_response_outlier = tibble()
+num_subj = length(all.data_outlier)
 num_subj
 for(i in 1:num_subj) {
   for(j in 1:660) {
-    trial_response_precision = bind_rows(trial_response_precision,
-                                    tibble(subject = all.data_precision[[i]]$subject,
-                                           sid = all.data_precision[[i]]$client$sid,
-                                           trial_number = all.data_precision[[i]]$trials[[j]]$trialNumber,
-                                           mean_index = all.data_precision[[i]]$trials[[j]]$mean_index,
-                                           group_1_size = all.data_precision[[i]]$trials[[j]]$group_1_size,
-                                           group_2_size = all.data_precision[[i]]$trials[[j]]$group_2_size,
-                                           group_1_sd = all.data_precision[[i]]$trials[[j]]$group_1_sd,
-                                           group_2_sd = all.data_precision[[i]]$trials[[j]]$group_2_sd,
-                                           inner_width = all.data_precision[[i]]$trials[[j]]$inner_width,
-                                           inner_height = all.data_precision[[i]]$trials[[j]]$inner_height,
+    trial_response_outlier = bind_rows(trial_response_outlier,
+                                    tibble(subject = all.data_outlier[[i]]$subject,
+                                           sid = all.data_outlier[[i]]$client$sid,
+                                           trial_number = all.data_outlier[[i]]$trials[[j]]$trialNumber,
+                                           mean_index = all.data_outlier[[i]]$trials[[j]]$mean_index,
+                                           outlier_dist = all.data_outlier[[i]]$trials[[j]]$group_dist,
+                                           # outlier_dist = all.data_outlier[[i]]$trials[[j]]$mean_index,
+                                           
+                                           group_1_size = all.data_outlier[[i]]$trials[[j]]$group_1_size,
+                                           group_2_size = all.data_outlier[[i]]$trials[[j]]$group_2_size,
+                                           group_sd = all.data_outlier[[i]]$trials[[j]]$group_sd,
+                                           inner_width = all.data_outlier[[i]]$trials[[j]]$inner_width,
+                                           inner_height = all.data_outlier[[i]]$trials[[j]]$inner_height,
                                            width_height = min(inner_width,inner_height)*0.98,
                                            aspect_ratio = inner_width/inner_height,
                                            # normalized coordinate
-                                           group_1_coord = list(coord_fcn(all.data_precision[[i]]$trials[[j]]$group_1_coord,width_height)),
-                                           group_2_coord = list(coord_fcn(all.data_precision[[i]]$trials[[j]]$group_2_coord,width_height)),
+                                           group_1_coord = list(coord_fcn(all.data_outlier[[i]]$trials[[j]]$group_1_coord,width_height)),
                                            
-                                           all_coordinates = list(coord_all_fcn(all.data_precision[[i]]$trials[[j]]$all_coordinates,width_height)),
-                                           response_coordinate = list(c(all.data_precision[[i]]$trials[[j]]$response_coord$x/width_height,
-                                                                        all.data_precision[[i]]$trials[[j]]$response_coord$y/width_height)
-                                           ),
-                                           mean_group_1 = list(c(all.data_precision[[i]]$trials[[j]]$mean_group_1$x/width_height,
-                                                                 all.data_precision[[i]]$trials[[j]]$mean_group_1$y/width_height)
-                                           ),
-                                           mean_group_2 = list(c(all.data_precision[[i]]$trials[[j]]$mean_group_2$x/width_height,
-                                                                 all.data_precision[[i]]$trials[[j]]$mean_group_2$y/width_height)
-                                           ),
-                                           mean_all = list(c(all.data_precision[[i]]$trials[[j]]$mean_all$x/width_height,
-                                                             all.data_precision[[i]]$trials[[j]]$mean_all$y/width_height)
+                                           group_2_coord = ifelse(group_2_size != 0, list(coord_fcn(all.data_outlier[[i]]$trials[[j]]$group_2_coord,width_height)),
+                                                                  NA),
+                                           
+                                           all_coordinates = ifelse(group_2_size != 0, list(coord_all_fcn(all.data_outlier[[i]]$trials[[j]]$all_coordinates,width_height)),
+                                                                    group_1_coord),
+                                           response_coordinate = list(c(all.data_outlier[[i]]$trials[[j]]$response_coord$x/width_height,
+                                                                        all.data_outlier[[i]]$trials[[j]]$response_coord$y/width_height)),
+                                           
+                                           mean_group_1 = list(c(all.data_outlier[[i]]$trials[[j]]$mean_group_1$x/width_height,
+                                                                 all.data_outlier[[i]]$trials[[j]]$mean_group_1$y/width_height)),
+                                           
+                                           mean_group_2 =  ifelse(group_2_size != 0, list(c(all.data_outlier[[i]]$trials[[j]]$mean_group_2$x/width_height),
+                                                                 all.data_outlier[[i]]$trials[[j]]$mean_group_2$y/width_height),
+                                                                 NA),
+              
+                                           mean_all = list(c(all.data_outlier[[i]]$trials[[j]]$mean_all$x/width_height,
+                                                             all.data_outlier[[i]]$trials[[j]]$mean_all$y/width_height)
                                            )
                                     )
     )
@@ -59,10 +64,9 @@ for(i in 1:num_subj) {
 }
 
 #Error analysis
-tb.errors_precision= trial_response_precision %>% 
+tb.errors_outlier = trial_response_outlier %>% filter(group_2_size == 1) %>% 
   rowwise() %>% 
   mutate(size_ratio = group_1_size/group_2_size,
-         precision_ratio = 1/(group_1_sd/group_2_sd),
          mean_index = mean_index,
          mean_all_recenter = list(c(mean_all[1]-0.5,mean_all[2]-0.5)),
          all_coordinates_recenter = list(recenter(all_coordinates,mean_all)),
@@ -130,17 +134,17 @@ tb.errors_precision= trial_response_precision %>%
 # Exclusion criterion
 
 # Attention check trials
-tb.errors_precision[tb.errors_precision$wihtin_boundary_x=="F",][which(tb.errors_precision[tb.errors_precision$wihtin_boundary_x=="F",]$mean_index==(-1)),] %>% 
+tb.errors_outlier[tb.errors_outlier$wihtin_boundary_x=="F",][which(tb.errors_outlier[tb.errors_outlier$wihtin_boundary_x=="F",]$mean_index==(-1)),] %>% 
   pull(subject) %>% 
   unique()
 
 #Check the out-of-boundary response trials
-coord_out = tb.errors_precision[tb.errors_precision$wihtin_boundary_x=="F",] %>% 
+coord_out = tb.errors_outlier[tb.errors_outlier$wihtin_boundary_x=="F",] %>% 
   pull(all_coordinates)
 # Add index column for each dataframes in a list
 coord_out = coord_out %>% Map(cbind, ., trial_num = seq_along(.),type = "stimuli") %>% do.call(rbind,.)
 
-coord_response_out = tb.errors_precision[tb.errors_precision$wihtin_boundary_x=="F",] %>% pull(response_coordinate) %>% do.call(rbind,.) %>% 
+coord_response_out = tb.errors_outlier[tb.errors_outlier$wihtin_boundary_x=="F",] %>% pull(response_coordinate) %>% do.call(rbind,.) %>% 
   as.data.frame() %>% mutate(trial_num = 1:nrow(.),type = "response")
 colnames(coord_response_out)[1:2] = c("x", "y")
 all_coord_out = rbind(coord_out, coord_response_out)
@@ -148,17 +152,18 @@ all_coord_out %>% ggplot(aes(x=x,y=y,color=type)) +geom_point() + facet_wrap(tri
 
 # within_boundary_x 
 # Likely due to button misclick
-tb.errors_precision[tb.errors_precision$wihtin_boundary_x=="F",] %>% print(n=100)
-tb.errors_precision = tb.errors_precision[tb.errors_precision$wihtin_boundary_x=="T",] 
+tb.errors_outlier[tb.errors_outlier$wihtin_boundary_x=="F",] %>% print(n=100)
+tb.errors_outlier = tb.errors_outlier[tb.errors_outlier$wihtin_boundary_x=="T",] 
 
 #Exclude practice and attention check trials
-tb.errors_precision_dat = tb.errors_precision[-which(tb.errors_precision$mean_index %in% (-(1:7))),]
+tb.errors_outlier_dat = tb.errors_outlier[-which(tb.errors_outlier$mean_index %in% (-(1:7))),]
+
 
 # weird trials
-tb.errors_precision_dat[tb.errors_precision_dat$group_1_weight>=1,]
+# tb.errors_outlier_dat[tb.errors_outlier_dat$group_1_weight>=1,]
 
 #Mean absolute error for individual subject
-mean_abs_error_precision = tb.errors_precision_dat %>% filter(size_ratio == 1,precision_ratio==1) %>% group_by(subject) %>% 
+mean_abs_error_precision = tb.errors_outlier_dat %>% group_by(subject) %>% 
   summarise(mean_abs_error = mean(abs_error_to_all)) %>% 
   mutate(z_score = (mean_abs_error - mean(mean_abs_error))/sd(mean_abs_error)) 
 
@@ -172,35 +177,35 @@ mean_abs_error_precision %>%filter(z_score>2)
 
 # Group_1 weight vs.Group_2 cardinality
 # raw data (subject)
-tb.errors_precision_dat$group_1_size = as.factor(tb.errors_precision_dat$group_1_size)
-tb.errors_precision_dat$group_2_size = as.factor(tb.errors_precision_dat$group_2_size)
-tb.errors_precision_dat$size_ratio = as.factor(tb.errors_precision_dat$size_ratio)
-tb.errors_precision_dat$precision_ratio = as.factor(tb.errors_precision_dat$precision_ratio)
+tb.errors_outlier_dat$group_1_size = as.factor(tb.errors_outlier_dat$group_1_size)
+tb.errors_outlier_dat$group_2_size = as.factor(tb.errors_outlier_dat$group_2_size)
+tb.errors_outlier_dat$size_ratio = as.factor(tb.errors_outlier_dat$size_ratio)
+tb.errors_outlier_dat$outlier_dist = as.factor(tb.errors_outlier_dat$outlier_dist)
 
-tb.errors_precision_dat  %>% filter(size_ratio==0.5, subject==3) %>% 
-  ggplot(aes(x=precision_ratio, y = group_1_weight)) + 
+tb.errors_outlier_dat  %>% filter(subject==1) %>% 
+  ggplot(aes(x=outlier_dist, y = group_1_weight)) + 
   # geom_boxplot()+
   geom_point(shape=16,size=3)+
   geom_jitter(position=position_jitter(0.1),shape=16,size=2.5)+
-  geom_point(aes(x=precision_ratio, y = true_group_1_weight), shape=17, size=3, color = "red") +
+  geom_point(aes(x=outlier_dist, y = true_group_1_weight), shape=17, size=3, color = "red") +
   facet_wrap(.~subject)
 
 # Average
-tb.errors_precision_dat %>% group_by(subject, group_1_size, size_ratio, precision_ratio) %>% 
+tb.errors_outlier_dat %>% group_by(subject, size_ratio, outlier_dist) %>% 
   summarise(n = n(), 
-            group_1_weight = mean(group_1_weight),
-            true_group_1_weight=mean(true_group_1_weight)) %>% 
-  group_by(precision_ratio,size_ratio,group_1_size) %>% 
+            group_2_weight = mean(group_2_weight),
+            true_group_2_weight=mean(true_group_2_weight)) %>% 
+  group_by(outlier_dist,size_ratio) %>% 
   summarise(n=n(), 
-            mean_group_1_weight = mean(group_1_weight),
-            se_group_1_weight = sd(group_1_weight)/sqrt(n),
-            true_group_1_weight=mean(true_group_1_weight)) %>% 
-  ggplot(aes(x=precision_ratio,y=mean_group_1_weight,color=group_1_size,group=group_1_size)) + 
+            mean_group_2_weight = mean(group_2_weight),
+            se_group_2_weight = sd(group_2_weight)/sqrt(n),
+            true_group_2_weight=mean(true_group_2_weight)) %>% 
+  ggplot(aes(x=outlier_dist,y=mean_group_2_weight,color=size_ratio,group=outlier_dist)) + 
   geom_point(shape=16,size=3) + 
-  geom_line(aes(x=precision_ratio,y=mean_group_1_weight))+
-  geom_errorbar(aes(ymin=mean_group_1_weight-se_group_1_weight,ymax=mean_group_1_weight+se_group_1_weight),width=0.15,size=1.2)+
-  geom_point(aes(x=precision_ratio, y = true_group_1_weight),shape=17,size=3,color="red")+
-  geom_line(aes(x=precision_ratio, y = true_group_1_weight,group=2),color="red")+
+  geom_line(aes(x=outlier_dist,y=mean_group_2_weight))+
+  geom_errorbar(aes(ymin=mean_group_2_weight-se_group_2_weight,ymax=mean_group_2_weight+se_group_2_weight),width=0.15,size=1.2)+
+  geom_point(aes(x=outlier_dist, y = true_group_2_weight),shape=17,size=3,color="red")+
+  geom_line(aes(x=outlier_dist, y = true_group_2_weight,group=2),color="red")+
   # geom_point(aes(x=group_2_size, y = mean_group_2_edge),shape=17,size=3,color="blue")+
   # geom_line(aes(x=group_2_size, y = mean_group_2_edge,group=2),color="blue")+
   facet_wrap(.~size_ratio)+

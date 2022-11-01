@@ -295,7 +295,6 @@ tb.errors_size_dat %>% group_by(subject, group_1_size, group_2_size, size_ratio)
 # Cardinality-Weighting model: Global mean + noise
 
 
-
 # Edge effect: Weighting of the two groups is not based on the group means but rather the boundary
 # Given the boundary, the 2-D Gaussian distribution is truncated => naturally shifted the mean as opposed to unbounded.
 # Two boundaries: Group edge boundary (potential) vs. group mean boundaries (global mean has to located between group means)
@@ -316,6 +315,16 @@ tb.errors_size_dat = tb.errors_size_dat %>% mutate(
   consistent_side = inner_group == inner_group_response
 )
 
+# proportion of inner group vs. outer group
+tb.errors_size_dat %>%group_by(subject) %>% 
+  summarise(num_inner = sum(inner_group==T),
+            num_outer = sum(inner_group==F),
+            prop_inner = num_inner/(num_inner+num_outer),
+            prop_outer = 1-prop_inner) %>% 
+  summarise(mean_prop_inner = mean(prop_inner),
+            mean_prop_outer = mean(prop_outer))
+
+# Proportion of estimate with consistent sides
 edge_proportion = tb.errors_size_dat %>% filter(size_ratio !=1) %>% 
   group_by(group_1_size,size_ratio) %>% 
   summarise(total = n(),
@@ -340,6 +349,8 @@ edge_proportion %>%  ggplot(aes(x=as.factor(size_ratio), y=proportion_inconsiten
 # Trial-by-trial dependency
 # Identify each trial and its antecedent (one-back)
 # Identify the true mean 
+true_means = tb.errors_size_dat$true_group_1_weight %>% unique() %>% sort()
+
 
 # convex hull area (cardinality >= 4)
 tb.errors_size_dat=tb.errors_size_dat %>% mutate(convex_hull_coord_group_1 = list(compute_ch(group_1_coord_recenter)),
@@ -347,5 +358,6 @@ tb.errors_size_dat=tb.errors_size_dat %>% mutate(convex_hull_coord_group_1 = lis
 
 tb.errors_size_dat = tb.errors_size_dat %>% mutate(area_hull_group_1 = areapl(as.matrix(convex_hull_coord_group_1)),
                                                    area_hull_group_2 = areapl(as.matrix(convex_hull_coord_group_2))) 
+
 
 
