@@ -69,16 +69,19 @@ size_pairs = [
     [4, 0],
     [8, 0],
     [16, 0],
+    [32, 0],
+    [2, 1],
     [4, 1],
     [8, 1],
-    [16, 1]
+    [16, 1],
+    [32, 1]
 ];
 
 // Varying overall precision
 range_multiplier = [1];
 
 // Outlier distance multiplier
-dist_multiplier = [3, 6, 9];
+dist_multiplier = [6, 9];
 
 // Group mean to center
 group_mean_to_center = group_range_unit;
@@ -88,20 +91,20 @@ var means_index = jStat.seq(0, 11, 12);
 
 // Indexing rule: [group_1_size, group_2_size, range_multiplier, trial index]
 // Attention check trial (6)
-var attention = [4, 16, 1, -1];
+var attention = [4, 16, 1, 6, -1];
 
 // Practice trial
-var practice_1 = [4, 0, 1, 3, -2];
-var practice_2 = [8, 0, 1, 3, -3];
-var practice_3 = [4, 1, 1, 9, -4];
-var practice_4 = [16, 1, 1, 6, -5];
-var practice_5 = [8, 1, 1, 3, -6];
-var practice_6 = [16, 0, 1, 3, -7];
+var practice_1 = [4, 0, 1, 6, -2];
+var practice_2 = [8, 1, 1, 9, -3];
+var practice_3 = [4, 1, 1, 6, -4];
+var practice_4 = [16, 0, 1, 6, -5];
+var practice_5 = [32, 0, 1, 6, -6];
+var practice_6 = [2, 1, 1, 6, -7];
 
 // Trial structure: 6 practice trials + 18*36 = 648 (experimental trials) + 6 attention-check trials = 660 trials
-var trial_size_pairs = repeat_whole_single(repeat_each_array(size_pairs, 3), 36);
+var trial_size_pairs = repeat_whole_single(repeat_each_array(size_pairs, 2), 36);
 var trial_size_sd = repeat_each_single(range_multiplier, 648);
-var trial_size_dist = repeat_each_single(dist_multiplier, 216);
+var trial_size_dist = repeat_each_single(dist_multiplier, 324);
 var trial_means_index = repeat_whole_single(repeat_each_single(means_index, 18), 3);
 var trial_index = combineArray(trial_size_pairs, trial_size_sd);
 trial_index = combineArray(trial_index, trial_size_dist);
@@ -124,7 +127,7 @@ trial_index.splice(0, 0, practice_2);
 trial_index.splice(0, 0, practice_1);
 
 console.log(trial_index);
-console.log(trial_index[0][1])
+console.log(trial_index[0][1]);
 var sub_canvas_center_list = [];
 for (let i = 0; i < 660; i++) {
     if (trial_index[i][1] == 1) {
@@ -208,24 +211,24 @@ function get_positions(trial_index) {
     // var practice_3 = [4, 1, 1, 3, -4];
 
     //recenter
-    if (trial_index[3] == -1) {
-        group_1_coord.map(x => x.x = trial_index[4] + x.x * trial_index[2] * (group_range_unit));
-        group_1_coord.map(x => x.y = trial_index[5] + x.y * trial_index[2] * (group_range_unit));
-        group_2_coord.map(x => x.x = trial_index[4] + x.x * trial_index[2] * (group_range_unit));
-        group_2_coord.map(x => x.y = trial_index[5] + x.y * trial_index[2] * (group_range_unit));
+    if (trial_index[4] == -1) {
+        group_1_coord.map(x => x.x = trial_index[5] + x.x * trial_index[2] * (group_range_unit));
+        group_1_coord.map(x => x.y = trial_index[6] + x.y * trial_index[2] * (group_range_unit));
+        group_2_coord.map(x => x.x = trial_index[5] + x.x * trial_index[2] * (group_range_unit));
+        group_2_coord.map(x => x.y = trial_index[6] + x.y * trial_index[2] * (group_range_unit));
         all_coord = group_1_coord.concat(group_2_coord);
-    } else if (trial_index[1] == 0){
+    } else if (trial_index[1] == 0) {
         group_1_coord.map(x => x.x = (trial_index[5] + group_mean_to_center * Math.cos(degToRad(180 + trial_index[4] * 30))) + x.x * trial_index[2] * (group_range_unit));
         group_1_coord.map(x => x.y = trial_index[6] + group_mean_to_center * Math.sin(degToRad(180 + trial_index[4] * 30)) + x.y * trial_index[2] * (group_range_unit));
         // group_2_coord.x = null;
         // group_2_coord.y = null;
         all_coord = group_1_coord;
     } else if (trial_index[1] == 1) {
-        group_1_coord.map(x => x.x = (trial_index[5] + trial_index[3]*group_mean_to_center * Math.cos(degToRad(180 + trial_index[4] * 30))) + x.x * trial_index[2] * (group_range_unit));
-        group_1_coord.map(x => x.y = trial_index[6] + trial_index[3]*group_mean_to_center * Math.sin(degToRad(180 + trial_index[4] * 30)) + x.y * trial_index[2] * (group_range_unit));
+        group_1_coord.map(x => x.x = (trial_index[5] + trial_index[3] * group_mean_to_center * Math.cos(degToRad(180 + trial_index[4] * 30))) + x.x * trial_index[2] * (group_range_unit));
+        group_1_coord.map(x => x.y = trial_index[6] + trial_index[3] * group_mean_to_center * Math.sin(degToRad(180 + trial_index[4] * 30)) + x.y * trial_index[2] * (group_range_unit));
 
-        group_2_coord.x = trial_index[5] + trial_index[3]*group_mean_to_center * Math.cos(degToRad(trial_index[4] * 30));
-        group_2_coord.y = trial_index[6] + trial_index[3]*group_mean_to_center * Math.sin(degToRad(trial_index[4] * 30));
+        group_2_coord.x = trial_index[5] + trial_index[3] * group_mean_to_center * Math.cos(degToRad(trial_index[4] * 30));
+        group_2_coord.y = trial_index[6] + trial_index[3] * group_mean_to_center * Math.sin(degToRad(trial_index[4] * 30));
 
         all_coord = group_1_coord.concat([group_2_coord]);
     };

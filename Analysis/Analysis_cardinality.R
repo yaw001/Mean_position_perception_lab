@@ -344,12 +344,27 @@ edge_proportion %>%  ggplot(aes(x=as.factor(size_ratio), y=proportion_inconsiten
 
 
 
-
-
 # Trial-by-trial dependency
 # Identify each trial and its antecedent (one-back)
 # Identify the true mean 
-true_means = tb.errors_size_dat$true_group_1_weight %>% unique() %>% sort()
+
+# tb.errors_size_dat %>% pull(size_ratio) %>% unique() %>% sort(decreasing = T)
+# size_ratio_1 = which(tb.errors_size_dat$size_ratio==0.0625) 
+# tb.errors_size_dat %>% filter(size_ratio == 0.03125) %>%  pull(response_recenter) %>% do.call(rbind,.) %>% plot()
+# size_ratio_1_back = size_ratio_1 - 1
+# size_ratio_1_back_1 = which(tb.errors_size_dat[size_ratio_1_back,]$size_ratio==1)
+# size_ratio_1_back_1_0.5 = which(tb.errors_size_dat[size_ratio_1_back,]$size_ratio==0.5)
+# size_ratio_1_back_1_0.25 = which(tb.errors_size_dat[size_ratio_1_back,]$size_ratio==0.25)
+# size_ratio_1_back_1_0.125 = which(tb.errors_size_dat[size_ratio_1_back,]$size_ratio==0.125)
+# size_ratio_1_back_1_0.06250 = which(tb.errors_size_dat[size_ratio_1_back,]$size_ratio==0.0625)
+# size_ratio_1_back_1_0.03125 = which(tb.errors_size_dat[size_ratio_1_back,]$size_ratio==0.03125)
+# 
+# tb.errors_size_dat[size_ratio_1_back_1 + 1,] %>% pull(response_recenter) %>% do.call(rbind,.) %>% plot()
+# tb.errors_size_dat[size_ratio_1_back_1_0.5 + 1,] %>% pull(response_recenter) %>% do.call(rbind,.) %>% plot()
+# tb.errors_size_dat[size_ratio_1_back_1_0.25 + 1,] %>% pull(response_recenter) %>% do.call(rbind,.) %>% plot()
+# tb.errors_size_dat[size_ratio_1_back_1_0.03125 + 1,] %>% pull(response_recenter) %>% do.call(rbind,.) %>% plot()
+# 
+# true_means = tb.errors_size_dat$true_group_1_weight %>% unique() %>% sort()
 
 
 # convex hull area (cardinality >= 4)
